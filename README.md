@@ -74,8 +74,6 @@ cmake --build build
 
 This repository includes a GitHub Actions workflow that compiles binaries for:
 
-- Windows (standalone EXE)
-- macOS (Intel + Apple Silicon)
 - Linux (x86_64 + ARM64)
 
 Resulting artifacts are published automatically with each release.
