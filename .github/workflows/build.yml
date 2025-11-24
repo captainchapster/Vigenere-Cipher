@@ -6,6 +6,37 @@ on:
   pull_request:
 
 jobs:
+  windows-x86_64:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install GTK4 + MinGW toolchain through MSYS2
+      - name: Install MSYS2 + GTK4
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-pkg-config
+
+      # Configure + build using MSYS2 shell
+      - name: Build (Windows x86_64)
+        shell: msys2 {0}
+        run: |
+          mkdir build
+          cd build
+          cmake -G "MinGW Makefiles" ..
+          mingw32-make
+
+      # Upload cipher.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cipher-windows-x86_64
+          path: build/cipher.exe
+
   linux-amd64:
     runs-on: ubuntu-latest
     steps:
