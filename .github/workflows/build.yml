@@ -111,37 +111,27 @@ jobs:
           cmake ..
           make
 
-      - name: Build AppImage
+      - name: Download linuxdeploy
+        run: |
+          wget -O linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy
+
+      - name: Create AppDir
         run: |
           APPDIR=AppDir
           mkdir -p $APPDIR/usr/bin
-          mkdir -p $APPDIR/usr/lib
           mkdir -p $APPDIR/usr/share/applications
           mkdir -p $APPDIR/usr/share/icons/hicolor/256x256/apps
 
           cp build/cipher $APPDIR/usr/bin/
-
-          # Copy GTK libraries
-          cp /usr/lib/x86_64-linux-gnu/libgtk-4*.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libgobject-2.0.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libglib-2.0.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libgio-2.0.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libpango-1.0.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libcairo.so* $APPDIR/usr/lib/
-          cp /usr/lib/x86_64-linux-gnu/libgdk-4.so* $APPDIR/usr/lib/
-
-          # AppRun, desktop entry, and icon
           cp appimage/AppRun $APPDIR/
           chmod +x $APPDIR/AppRun
           cp appimage/cipher.desktop $APPDIR/usr/share/applications/
           cp appimage/cipher.png $APPDIR/usr/share/icons/hicolor/256x256/apps/
 
-          # Get LinuxDeploy + AppImage plugins
-          wget -O linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy
-
-          ./linuxdeploy --appdir $APPDIR --output appimage
-
+      - name: Build AppImage
+        run: |
+          ./linuxdeploy --appdir AppDir --output appimage --plugin gtk
           mv *.AppImage cipher-linux-amd64.AppImage
 
       - uses: actions/upload-artifact@v4
@@ -157,28 +147,23 @@ jobs:
       - name: Enable QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build ARM64 AppImage inside container
+      - name: Build ARM64 binary inside Docker
         run: |
-          docker run \
-            --rm \
-            --platform=linux/arm64 \
-            -v ${{ github.workspace }}:/src \
-            -w /src \
-            debian:stable \
-            bash -c "
+          docker run --rm --platform=linux/arm64 \
+            -v ${{ github.workspace }}:/src -w /src \
+            debian:stable bash -c "
               apt-get update &&
-              apt-get install -y \
-                build-essential \
-                cmake \
-                pkg-config \
-                libgtk-4-dev &&
-              mkdir -p build-arm64 &&
-              cd build-arm64 &&
-              cmake .. &&
-              make
+              apt-get install -y build-essential cmake pkg-config libgtk-4-dev &&
+              mkdir -p build-arm64 && cd build-arm64 &&
+              cmake .. && make
             "
 
-      - name: Create AppDir structure
+      - name: Download appimagetool (ARM64)
+        run: |
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage -O appimagetool
+          chmod +x appimagetool
+
+      - name: Create AppDir
         run: |
           APPDIR=AppDirArm
           mkdir -p $APPDIR/usr/bin
@@ -186,16 +171,13 @@ jobs:
           mkdir -p $APPDIR/usr/share/icons/hicolor/256x256/apps
 
           cp build-arm64/cipher $APPDIR/usr/bin/
-
           cp appimage/AppRun $APPDIR/
           chmod +x $APPDIR/AppRun
           cp appimage/cipher.desktop $APPDIR/usr/share/applications/
           cp appimage/cipher.png $APPDIR/usr/share/icons/hicolor/256x256/apps/
 
-      - name: Package ARM64 AppImage (using appimagetool)
+      - name: Build ARM64 AppImage
         run: |
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage -O appimagetool
-          chmod +x appimagetool
           ./appimagetool AppDirArm cipher-linux-arm64.AppImage
 
       - uses: actions/upload-artifact@v4
