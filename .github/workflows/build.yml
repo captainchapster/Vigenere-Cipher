@@ -48,7 +48,7 @@ jobs:
       # Build installer
       - name: Build Installer
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\cipher.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\\cipher.iss"
 
       # Upload installer
       - uses: actions/upload-artifact@v4
