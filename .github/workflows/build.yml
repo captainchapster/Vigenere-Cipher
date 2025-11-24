@@ -17,7 +17,7 @@ jobs:
           mkdir build && cd build
           cmake ..
           make
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: cipher-linux-amd64
           path: build/cipher
@@ -34,7 +34,7 @@ jobs:
             -v ${{ github.workspace }}:/src \
             gcc:latest \
             bash -c "cd /src && mkdir -p build-arm64 && cd build-arm64 && cmake .. && make"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: cipher-linux-arm64
           path: build-arm64/cipher
@@ -48,7 +48,7 @@ jobs:
           mkdir build && cd build
           cmake -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ..
           make
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: cipher-macos-universal
           path: build/cipher
@@ -61,7 +61,7 @@ jobs:
         run: cmake -B build -G "MinGW Makefiles"
       - name: Build
         run: cmake --build build
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: cipher-windows-x86_64
           path: build/cipher.exe
