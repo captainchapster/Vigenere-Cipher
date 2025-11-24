@@ -6,12 +6,14 @@ DefaultGroupName=Cipher
 OutputBaseFilename=cipher-installer
 Compression=lzma
 SolidCompression=yes
+ArchitecturesInstallIn64BitMode=x64
+AllowNoIcons=yes
 
 [Files]
-; Main executable
-Source: "build\cipher.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Main program
+Source: "..\build\cipher.exe"; DestDir: "{app}"; Flags: ignoreversion
 
-; GTK DLLs copied from MSYS2 runtime
+; GTK runtime (copied by GitHub Actions)
 Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
@@ -19,4 +21,4 @@ Name: "{group}\Cipher"; Filename: "{app}\cipher.exe"
 Name: "{commondesktop}\Cipher"; Filename: "{app}\cipher.exe"; Tasks: desktopicon
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a Desktop icon"; GroupDescription: "Additional icons:"
+Name: "desktopicon"; Description: "Create a Desktop shortcut"; GroupDescription: "Additional Tasks:";
