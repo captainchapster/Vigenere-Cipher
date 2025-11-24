@@ -7,7 +7,7 @@ OutputBaseFilename=cipher-installer
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
-AllowNoIcons=yes
+SetupIconFile=installer\cipher.ico
 
 [Files]
 ; Main program
@@ -17,8 +17,8 @@ Source: "..\build\cipher.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
-Name: "{group}\Cipher"; Filename: "{app}\cipher.exe"
-Name: "{commondesktop}\Cipher"; Filename: "{app}\cipher.exe"; Tasks: desktopicon
+Name: "{group}\Cipher"; Filename: "{app}\cipher.exe"; IconFilename: "{app}\cipher.ico"
+Name: "{commondesktop}\Cipher"; Filename: "{app}\cipher.exe"; IconFilename: "{app}\cipher.ico"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a Desktop shortcut"; GroupDescription: "Additional Tasks:";

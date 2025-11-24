@@ -144,37 +144,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Enable QEMU for ARM64 emulation
       - name: Enable QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build ARM64 binary inside Docker
+      - name: Build ARM64 AppImage inside Docker
         run: |
           docker run --rm --platform=linux/arm64 \
             -v ${{ github.workspace }}:/src -w /src \
             debian:stable bash -c "
-              apt-get update &&
-              apt-get install -y build-essential cmake pkg-config libgtk-4-dev wget fuse &&
-              mkdir -p build-arm64 && cd build-arm64 &&
-              cmake .. && make
+              set -e
+              # Install build deps
+              apt-get update
+              apt-get install -y build-essential cmake pkg-config libgtk-4-dev wget fuse
+
+              # Build ARM64 binary
+              mkdir -p build-arm64
+              cd build-arm64
+              cmake ..
+              make
+
+              # Create AppDir
+              APPDIR=AppDirArm
+              mkdir -p \$APPDIR/usr/bin
+              mkdir -p \$APPDIR/usr/share/applications
+              mkdir -p \$APPDIR/usr/share/icons/hicolor/256x256/apps
+
+              cp cipher \$APPDIR/usr/bin/
+
+              # Copy AppRun, desktop entry, and icon from repo
+              cp ../appimage/AppRun \$APPDIR/
+              chmod +x \$APPDIR/AppRun
+              cp ../appimage/cipher.desktop \$APPDIR/usr/share/applications/
+              cp ../appimage/cipher.png \$APPDIR/usr/share/icons/hicolor/256x256/apps/
+
+              # Download ARM64 appimagetool
+              wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage
+              chmod +x appimagetool
+
+              # Build the AppImage
+              ./appimagetool \$APPDIR cipher-linux-arm64.AppImage
             "
 
-      - name: Create AppDir for AppImage
-        run: |
-          APPDIR=AppDirArm
-          mkdir -p $APPDIR/usr/bin
-          mkdir -p $APPDIR/usr/share/applications
-          mkdir -p $APPDIR/usr/share/icons/hicolor/256x256/apps
-          cp build-arm64/cipher $APPDIR/usr/bin/
-
-      - name: Download ARM64 appimagetool
-        run: |
-          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage
-          chmod +x appimagetool
-
-      - name: Build ARM64 AppImage
-        run: |
-          ./appimagetool AppDirArm cipher-linux-arm64.AppImage
-
+      # Upload the AppImage artifact
       - uses: actions/upload-artifact@v4
         with:
           name: cipher-linux-arm64
