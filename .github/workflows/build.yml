@@ -102,7 +102,7 @@ jobs:
             pkg-config \
             libgtk-4-dev \
             patchelf \
-            fuse
+            fuse wget
 
       - name: Build binary
         run: |
@@ -131,7 +131,7 @@ jobs:
 
       - name: Build AppImage
         run: |
-          ./linuxdeploy --appdir AppDir --output appimage --plugin gtk
+          ./linuxdeploy --appdir AppDir --output appimage
           mv *.AppImage cipher-linux-amd64.AppImage
 
       - uses: actions/upload-artifact@v4
