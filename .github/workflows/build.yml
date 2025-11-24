@@ -1,0 +1,67 @@
+name: Build Releases
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y cmake gcc
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cipher-linux-amd64
+          path: build/cipher
+
+  linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Enable QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build ARM64 in Docker
+        run: |
+          docker run --rm --platform=linux/arm64 \
+            -v ${{ github.workspace }}:/src \
+            gcc:latest \
+            bash -c "cd /src && mkdir -p build-arm64 && cd build-arm64 && cmake .. && make"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cipher-linux-arm64
+          path: build-arm64/cipher
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build universal macOS binary
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ..
+          make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cipher-macos-universal
+          path: build/cipher
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure
+        run: cmake -B build -G "MinGW Makefiles"
+      - name: Build
+        run: cmake --build build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cipher-windows-x86_64
+          path: build/cipher.exe
