@@ -14,7 +14,7 @@ AllowNoIcons=yes
 Source: "..\build\cipher.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 ; GTK runtime (copied by GitHub Actions)
-Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
+Source: "..\dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
 Name: "{group}\Cipher"; Filename: "{app}\cipher.exe"
