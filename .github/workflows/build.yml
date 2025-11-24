@@ -6,6 +6,56 @@ on:
   pull_request:
 
 jobs:
+  windows-installer:
+    runs-on: windows-latest
+
+    needs: windows-x86_64 # ensures the exe is built first
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install MSYS2
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-pkg-config
+
+      # Build executable
+      - name: Build (Windows x86_64)
+        shell: msys2 {0}
+        run: |
+          mkdir build
+          cd build
+          cmake -G "MinGW Makefiles" ..
+          mingw32-make
+
+      # Collect all GTK runtime dependencies
+      - name: Collect GTK Runtime (dist/)
+        shell: msys2 {0}
+        run: |
+          mkdir dist
+          cp /mingw64/bin/*.dll dist/ || true
+          cp -r /mingw64/share dist/share || true
+
+      # Install Inno Setup
+      - name: Install Inno Setup
+        run: choco install innosetup --yes
+
+      # Build installer
+      - name: Build Installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\cipher.iss
+
+      # Upload installer
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cipher-windows-installer
+          path: cipher-installer.exe
+
   windows-x86_64:
     runs-on: windows-latest
 
@@ -20,6 +70,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
 
       # Configure + build using MSYS2 shell
